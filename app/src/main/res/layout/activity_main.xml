@@ -26,6 +26,12 @@
         android:layout_height="wrap_content"/>
 
 
+    <Button
+        android:text="获取用户信息"
+        android:id="@+id/user_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
     <fragment
         android:id="@+id/fragment"
         android:name="com.example.kson.butterknifeandeventbus.MyFragment"

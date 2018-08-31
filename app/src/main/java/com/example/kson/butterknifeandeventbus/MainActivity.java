@@ -9,8 +9,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.kson.butterknifeandeventbus.eventbus.UserBean;
+
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -27,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     Button btn1;
     @BindView(R.id.btn2)
     Button btn2;
+    @BindView(R.id.user_btn)
+    Button userBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initData() {
         tv.setText("新数据");
-//        EventBus.getDefault().register(this);//注册eventbus，在哪个类里注册事件，就在哪个类接收
+        EventBus.getDefault().register(this);//注册eventbus，在哪个类里注册事件，就在哪个类接收
 //        EventBus.getDefault().post("我是1");//普通事件
         EventBus.getDefault().postSticky("我是1");//粘性事件
     }
@@ -58,9 +63,20 @@ public class MainActivity extends AppCompatActivity {
      * 收到main2发过来的消息，通过注解接收
      * @param msg
      */
-    @Subscribe
+    @Subscribe(priority = 50)
     public void receiveMsg(String msg){
-        tv.setText(msg);
+        tv.setText(msg+"1");
+        System.out.println("msg:1");
+    }
+    /**
+     * 收到main2发过来的消息，通过注解接收
+     * @param msg
+     */
+    @Subscribe(priority = 100)
+    public void receiveMsg1(String msg){
+        tv.setText(msg+"2");
+        System.out.println("msg:2");
+        EventBus.getDefault().cancelEventDelivery(msg);
     }
 
     /**
@@ -88,6 +104,47 @@ public class MainActivity extends AppCompatActivity {
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 //        super.onActivityResult(requestCode, resultCode, data);
 //    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void receiveBean(UserBean userBean){
+        //线程
+        System.out.println("threadname2:"+Thread.currentThread().getName());
+
+//        Toast.makeText(this, ""+userBean.getName(), Toast.LENGTH_SHORT).show();
+    }
+
+
+    @OnClick(R.id.user_btn)
+    public void click(View view){
+
+        Button button = (Button) view;
+        System.out.println(button.getText().toString());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //网络请求
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                //得到数据
+                UserBean userBean = new UserBean();
+                userBean.setName("kson");
+                userBean.setAge(100);
+
+                EventBus.getDefault().post(userBean);
+                System.out.println("threadname1:"+Thread.currentThread().getName());
+
+
+            }
+        }).start();
+
+    }
+
 
     @Override
     protected void onDestroy() {
